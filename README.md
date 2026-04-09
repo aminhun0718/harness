@@ -4,9 +4,10 @@ AI 에이전트 운영을 위한 하네스 인프라 스킬 모음.
 스캔 → 인터뷰 → 스택별 하위 스킬 호출로 프로젝트에 가드레일을 설치한다.
 
 ## 설치
+fork하여 사용하세요.
 
 ```bash
-git clone https://github.com/aminhun0718/harness-init.git ~/.claude/skills/harness
+git clone https://github.com/본인유저명/harness-init.git ~/.claude/skills/harness
 ```
 
 ## 업데이트
@@ -41,3 +42,4 @@ Claude Code에서:
 ```
 /harness-init
 ```
+/harness-web, /harness-rn, /harness-shared 를 단독 실행하지 마세요!
