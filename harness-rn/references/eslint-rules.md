@@ -296,6 +296,73 @@ export default [
 
 ---
 
+## 디자인 토큰 강제 (UI 작업 시)
+
+RN에서는 StyleSheet.create 내부에 색상을 하드코딩하는 것을 차단한다.
+`src/theme/` 내부 파일은 예외로 허용한다.
+
+```javascript
+const designRules = {
+  "no-restricted-syntax": ["error",
+    {
+      // hex 색상 리터럴 차단 (#fff, #3b82f6, #3b82f680 등)
+      selector: "Literal[value=/^#([0-9a-fA-F]{3}){1,2}([0-9a-fA-F]{2})?$/]",
+      message: "색상을 하드코딩하지 마세요. src/theme/tokens.ts의 토큰을 사용하세요. 예시: tokens.color.primary"
+    },
+    {
+      // rgb(), rgba() 차단
+      selector: "Literal[value=/^rgba?\\(/]",
+      message: "색상을 하드코딩하지 마세요. src/theme/tokens.ts의 토큰을 사용하세요."
+    }
+    // 주의: RN의 padding/margin 숫자 리터럴은 차단하지 않는다.
+    // 이유: 레이아웃 변수(flexGrow, 동적 계산값 등)와 섞여 있어 false positive가 많다.
+    // 대신 reviewer.md 체크리스트에서 토큰 사용을 검토한다.
+  ]
+};
+
+export default tseslint.config(
+  { files: ["src/**/*.{ts,tsx}"], rules: harnessRules },
+
+  // 디자인 토큰 강제 — theme/ 제외
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/theme/**", "src/**/*.test.{ts,tsx}"],
+    rules: designRules
+  },
+
+  // ... 기존 providers/layer 규칙
+);
+```
+
+### 인라인 스타일 금지 (권장 플러그인)
+
+RN에서 인라인 style 객체(`<View style={{ padding: 16 }} />`)는 매 렌더링마다
+새 객체를 생성하여 성능 저하를 유발한다. `eslint-plugin-react-native`로 차단한다:
+
+```javascript
+import reactNative from "eslint-plugin-react-native";
+
+export default tseslint.config(
+  {
+    plugins: { "react-native": reactNative },
+    rules: {
+      "react-native/no-inline-styles": "warn",
+      "react-native/no-color-literals": "warn" // StyleSheet.create 내 색상 리터럴 경고
+    }
+  }
+);
+```
+
+플러그인 설치: `npm install -D eslint-plugin-react-native`
+
+### 주의: no-restricted-syntax도 flat config에서 override 된다
+
+`no-restricted-syntax` 여러 블록이 매칭되면 마지막 것이 이전 것을 덮어쓴다
+(`no-restricted-imports`와 동일한 문제). 해결 방법도 동일 — 각 files 블록에서
+전역 design selectors를 스프레드로 명시 포함한다.
+
+---
+
 ## dependency-cruiser가 담당하는 것 (50파일 이상 시)
 
 ESLint `no-restricted-imports`는 단순 패턴만 차단한다.

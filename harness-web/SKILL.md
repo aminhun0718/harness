@@ -32,6 +32,14 @@ description: |
 > **Note**: 에이전트 가이드라인(agents/)은 프로젝트별로 스택에 맞게 생성해야 하므로
 > Step 4에서 처리한다.
 
+### Step 3.5. UI 접근 방식 결정 (프론트엔드 프로젝트일 때만)
+
+순수 백엔드(Next.js API-only, Express, Nest.js로 페이지/라우트 감지 안 됨)면 이 단계 전체 스킵.
+Step 1 스캔에서 기존 UI lib(mui, chakra, mantine 등)가 감지되면 그대로 유지.
+없으면 인터뷰 답변 기반으로 에이전트가 추천 — **특별한 이유 없으면 shadcn/ui + Tailwind 우선.** 근거는 답변에서 인용한 키워드로, 사용자가 한 단어로 거부 가능.
+
+선택 결과는 Step 4(ui-guide.md 템플릿 선택)와 Step 5(shadcn init 실행 여부)에 영향을 준다.
+
 ### Step 4. 프로젝트 구조 + 컨텍스트 생성
 
 Step 2 답변과 Step 1 스캔 결과를 조합하여 코드 폴더와 문서를 생성한다.
@@ -163,6 +171,9 @@ docs/
 
 **PRODUCT_SENSE.md**: Step 2 답변 기반 초안 생성. 템플릿은 `../harness-shared/templates-common.md` 참조.
 **QUALITY_SCORE.md**: 모든 영역을 N/A로 초기화. 첫 garbage collection 스케줄에서 실제 점수를 산출한다. 템플릿은 `../harness-shared/templates-common.md` 참조.
+**design-docs/ui-guide.md**: 프론트엔드 프로젝트일 때만 생성. 순수 백엔드(Step 3.5에서 스킵됨)에서는 생성하지 않는다.
+- Step 3.5에서 **shadcn/ui + Tailwind** 선택 시: `references/templates.md`의 "ui-guide.md 템플릿 (shadcn+Tailwind)" 섹션 사용
+- 다른 UI lib 선택 시: `../harness-shared/templates-common.md`의 기본 "ui-guide.md 템플릿" 사용 (토큰 위치를 선택된 lib에 맞춰 치환)
 
 QUALITY_SCORE 자동 산출 기준 (garbage collection에서 사용):
 ```
@@ -221,6 +232,16 @@ src/ 직속 파일(errors.ts 등)은 "공통" 영역으로 묶는다.
 - 스택에 맞는 providers/ 생성 (예: providers/supabase.ts, providers/auth.ts)
 - 이미 lib/supabase.ts 등이 있으면 providers/로 이동하거나 re-export
 - ESLint에서 providers/ 외의 직접 import 차단
+
+**UI 라이브러리 설치** (Step 3.5 결과에 따라 분기):
+- **shadcn/ui + Tailwind 선택 시**:
+  - Tailwind 없으면 설치: `npm install -D tailwindcss postcss autoprefixer` + `npx tailwindcss init -p` (v3) 또는 Tailwind v4 설치 가이드 따름
+  - shadcn init: `npx shadcn@latest init` (globals.css, tailwind.config.ts, src/lib/utils.ts 생성)
+  - 기본 primitives: `npx shadcn@latest add button input card dialog skeleton form alert`
+  - `eslint-plugin-tailwindcss` 설치 + `tailwindcss/no-arbitrary-value` 규칙 활성화
+  - ESLint `ignores`에 `tailwind.config.*`, `src/components/ui/**` 추가 (`references/eslint-rules.md` 참조)
+- **다른 UI lib 선택 시**: 해당 lib의 표준 설치 명령 실행, `references/eslint-rules.md`의 "디자인 토큰 강제" 섹션에서 `ignores` 경로 조정
+- **UI lib 없음 (순수 백엔드)**: 이 하위 단계 스킵
 
 ### Step 6. CI/CD 설정
 
@@ -344,6 +365,9 @@ Step 1 스캔에서 감지한 Codex 플러그인 설치 여부에 따라:
 | `update-config` | settings.json 수정 시 | 직접 JSON 편집 대신 스킬로 안전하게 |
 | `schedule` | 주기적 관리 설정 시 | doc-gardening, garbage collection 스케줄 |
 | `simplify` | 코드 정리 시 | 생성된 설정 파일 중복/비효율 체크 |
+| `frontend-design` | 새 화면/컴포넌트 설계 시 | 제네릭한 AI 디자인 지양, 토큰 기반 프로덕션 UI 생성 |
+| `audit` | 기능 완성 직후 | 접근성/성능/디자인 일관성 종합 점검 (P0-P3 리포트) |
+| `polish` | PR 올리기 전 | 정렬/간격/마이크로 디테일 마감 |
 
 ---
 

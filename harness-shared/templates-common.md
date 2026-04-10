@@ -148,6 +148,13 @@
 - [ ] 함수/변수 이름이 명확한가?
 - [ ] 에러 핸들링이 적절한가?
 
+### UI (프론트엔드 작업 시)
+- [ ] 색상/간격/타이포를 하드코딩하지 않고 디자인 토큰을 사용하는가?
+- [ ] 컴포넌트가 로딩/빈/에러 상태를 모두 처리하는가?
+- [ ] 대화형 요소에 접근성 속성이 있는가? (웹: semantic HTML/alt, RN: accessibilityLabel)
+- [ ] 키보드 접근 가능한가? (웹) / 스크린리더 라벨이 있는가? (RN)
+- [ ] 반응형/SafeArea 기본 대응이 되어 있는가?
+
 ## 리뷰 결과 포맷
 리뷰 후 다음 형태로 피드백:
 - 🔴 차단: 반드시 수정 필요 (아키텍처 위반, 보안 문제)
@@ -250,11 +257,88 @@ CLAUDE.md에 요약이 있고, 여기에 상세 근거를 기록한다.
 - "왜 이렇게 했는지"가 빠지면 다음 에이전트 세션에서 되돌릴 수 있다
 - 커밋 메시지에 의도를 명확히
 
+### 5. 디자인 토큰 외 색상/스페이싱 하드코딩 금지 (UI 작업 시)
+- 색상, 간격, 타이포, 라디우스, 섀도는 `src/theme/tokens.ts`에서만 정의
+- providers/ 패턴과 같은 이유 — 변경 지점을 한 곳으로 모아 일관성과 교체 용이성 확보
+- ESLint `no-restricted-syntax`로 hex/rgb 리터럴 차단 (theme/ 예외)
+
+### 6. 컴포넌트는 로딩/빈/에러 상태를 기본 처리한다
+- 해피패스만 구현하면 리뷰에서 차단
+- 로딩: 스켈레톤/스피너 / 빈: 안내 + 다음 액션 / 에러: 원인 + 재시도
+- 상세는 `docs/design-docs/ui-guide.md` 참조
+
 ## 프로젝트 특화 원칙
 
 ### {{Step 2 인터뷰에서 도출된 원칙}}
 - {{근거}}
 - {{적용 범위}}
+```
+
+---
+
+## design-docs/ui-guide.md 템플릿 (기본 — RN / 비-Tailwind 웹용)
+
+UI/프론트엔드 작업 시 반드시 따라야 할 규칙. CLAUDE.md 라우팅 테이블의 "UI" 작업 유형과 연결된다.
+
+이 기본 템플릿은 **RN 프로젝트 + 웹에서 shadcn+Tailwind를 선택하지 않은 경우**에 사용한다.
+**웹 + shadcn/ui + Tailwind 선택 시**는 `harness-web/references/templates.md`의 "ui-guide.md 템플릿 (shadcn+Tailwind)" 섹션 사용 — 토큰 위치가 `tailwind.config.ts`/`globals.css`로 다름.
+
+```markdown
+# UI 가이드 — {{프로젝트명}}
+
+> 마지막 업데이트: {{날짜}}
+
+이 문서는 UI/프론트엔드 작업 시 반드시 따라야 할 규칙을 정의한다.
+CLAUDE.md 라우팅 테이블의 "UI" 작업 유형에서 연결된다.
+
+## 디자인 토큰 (단일 소스)
+
+색상, 간격, 타이포, 라디우스, 섀도는 **오직 토큰 파일에서만** 정의한다.
+컴포넌트/스타일 코드 안에 리터럴 값을 직접 쓰지 않는다.
+
+- 토큰 위치: `src/theme/tokens.ts`
+- 금지: `color: '#3b82f6'`, `padding: 16`, `fontSize: 14`
+- 허용: `color: tokens.color.primary`, `padding: tokens.space.md`
+
+**왜?** providers/ 패턴과 같은 이유 — 변경 지점을 한 곳으로 모아 일관성과 교체 용이성을 확보한다.
+ESLint `no-restricted-syntax`로 hex/rgb 리터럴을 차단하므로 토큰 외 값은 컴파일 단계에서 거부된다.
+
+## 컴포넌트 상태 4종 (필수 처리)
+
+모든 데이터 기반 컴포넌트는 다음 상태를 모두 처리한다:
+
+| 상태 | 설명 | 최소 요건 |
+|------|------|----------|
+| 로딩 | 데이터 패칭 중 | 스켈레톤 또는 스피너 |
+| 빈 | 데이터 없음 | 안내 메시지 + 다음 액션 |
+| 에러 | 로딩 실패 | 원인 + 재시도 버튼 |
+| 성공 | 정상 데이터 | 실제 UI |
+
+해피패스만 구현하면 reviewer 체크리스트에서 차단된다.
+
+## 접근성 (a11y) 최소 요건
+
+- **웹**: semantic HTML 우선, 대화형 요소는 키보드 포커스 가능, 이미지 `alt` 필수
+- **RN**: 대화형 요소에 `accessibilityLabel` + `accessibilityRole` 지정
+
+자세한 체크리스트는 `docs/agents/reviewer.md`의 "UI" 섹션 참조.
+
+## 반응형 / 적응형
+
+- **웹**: breakpoint는 토큰에서 정의, 모바일 우선
+- **RN**: `SafeAreaView` 기본 적용, Dynamic Type 대응
+
+## 컴포넌트 작성 규칙
+
+- 재사용 가능한 UI primitives는 `src/components/ui/`에 위치 (또는 RN `src/components/`)
+- 화면/페이지별 전용 컴포넌트는 해당 화면 폴더 안에
+- 인라인 스타일 금지 — 웹은 className/Tailwind, RN은 `StyleSheet.create`
+- 데이터 fetching은 컴포넌트가 아니라 hook/lib에서
+
+## 승격 (문서 → ESLint)
+
+이 문서의 규칙을 에이전트가 반복 위반하면 ESLint 규칙으로 승격한다.
+승격 이력은 `docs/design-docs/rule-promotions.md`에 기록한다.
 ```
 
 ---

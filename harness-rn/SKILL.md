@@ -170,6 +170,7 @@ RN 특화 리뷰 체크리스트 항목 (reviewer.md에 포함):
 
 **PRODUCT_SENSE.md**: Step 2 답변 기반 초안 생성. 템플릿은 `../harness-shared/templates-common.md` 참조.
 **QUALITY_SCORE.md**: 모든 영역을 N/A로 초기화. 템플릿은 `../harness-shared/templates-common.md` 참조.
+**design-docs/ui-guide.md**: RN 프로젝트는 항상 생성(모든 화면이 UI). 디자인 토큰 규칙, 컴포넌트 상태 4종, a11y(accessibilityLabel/Role) 요건, StyleSheet.create 필수 + SafeAreaView 기본 포함. 템플릿은 `../harness-shared/templates-common.md`의 "ui-guide.md 템플릿" 섹션 참조.
 
 QUALITY_SCORE 자동 산출 기준 (garbage collection에서 사용):
 ```
@@ -384,6 +385,9 @@ RN 프로젝트에서는 API 라우트 스캔 스크립트가 불필요하다 (E
 | `update-config` | settings.json 수정 시 | 직접 JSON 편집 대신 스킬로 안전하게 |
 | `schedule` | 주기적 관리 설정 시 | doc-gardening, garbage collection 스케줄 |
 | `simplify` | 코드 정리 시 | 생성된 설정 파일 중복/비효율 체크 |
+| `frontend-design` | 새 화면/컴포넌트 설계 시 | 제네릭한 AI 디자인 지양, 토큰 기반 프로덕션 UI 생성 |
+| `audit` | 기능 완성 직후 | 접근성/성능/디자인 일관성 종합 점검 (P0-P3 리포트) |
+| `polish` | PR 올리기 전 | 정렬/간격/마이크로 디테일 마감 |
 
 ---
 

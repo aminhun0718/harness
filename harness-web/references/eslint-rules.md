@@ -262,6 +262,93 @@ export default [
 
 ---
 
+## 디자인 토큰 강제 (UI 작업 시)
+
+색상을 디자인 토큰 외에 하드코딩하는 것을 차단한다.
+`ignores` 경로는 Step 3.5에서 선택된 UI lib에 따라 조정한다.
+
+```javascript
+const designRules = {
+  "no-restricted-syntax": ["error",
+    {
+      // hex 색상 리터럴 차단 (#fff, #3b82f6, #3b82f680 등)
+      selector: "Literal[value=/^#([0-9a-fA-F]{3}){1,2}([0-9a-fA-F]{2})?$/]",
+      message: "색상을 하드코딩하지 마세요. Tailwind 토큰(tailwind.config의 theme 또는 globals.css @theme)을 사용하세요."
+    },
+    {
+      // rgb(), rgba() 문자열 차단
+      selector: "Literal[value=/^rgba?\\(/]",
+      message: "색상을 하드코딩하지 마세요. Tailwind 토큰을 사용하세요."
+    }
+  ]
+};
+
+export default [
+  { rules: harnessRules },
+
+  // 디자인 토큰 강제 — 토큰 소스 + 생성 컴포넌트 제외
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      // shadcn+Tailwind 선택 시 (Step 3.5 기본):
+      "tailwind.config.*",         // Tailwind v3 토큰 소스
+      "src/components/ui/**",      // shadcn primitives (생성 파일)
+      // 다른 UI lib 선택 시 해당 lib의 토큰/theme 파일 경로로 교체
+      // 예: "src/theme/**" (CSS Modules / 커스텀)
+      "src/**/*.stories.tsx",
+      "src/**/*.test.{ts,tsx}"
+    ],
+    rules: designRules
+  },
+
+  // ... 기존 providers/layer 규칙
+];
+```
+
+**Note**: Tailwind v4의 `@theme {}` 블록은 `globals.css`에 있는데, CSS 파일은 ESLint가 기본 스캔하지 않으므로 별도 ignores가 필요 없다.
+
+### Tailwind 임의값 차단 (shadcn+Tailwind 선택 시 기본 활성화)
+
+Tailwind의 `[12px]`, `text-[#fff]` 같은 임의값은 토큰을 우회하는 경로다.
+`eslint-plugin-tailwindcss`의 `no-arbitrary-value` 규칙으로 차단한다:
+
+```bash
+npm install -D eslint-plugin-tailwindcss
+```
+
+```javascript
+import tailwind from "eslint-plugin-tailwindcss";
+
+export default [
+  ...tailwind.configs["flat/recommended"],
+  {
+    rules: {
+      "tailwindcss/no-arbitrary-value": "error"
+    }
+  }
+];
+```
+
+Step 3.5에서 shadcn+Tailwind를 선택한 경우 Step 5의 UI 라이브러리 설치 단계에서 자동 활성화된다.
+
+### 주의: no-restricted-syntax도 flat config에서 override 된다
+
+`no-restricted-syntax` 여러 블록이 매칭되면 마지막 것이 이전 것을 덮어쓴다
+(`no-restricted-imports`와 동일한 문제). 해결 방법도 동일 — 각 files 블록에서
+전역 design selectors를 스프레드로 명시 포함한다.
+
+```javascript
+const designSelectors = [
+  { selector: "Literal[value=/^#.../]", message: "..." },
+  { selector: "Literal[value=/^rgba?\\(/]", message: "..." }
+];
+
+// types/ 같은 다른 files 블록에서도:
+"no-restricted-syntax": ["error", ...designSelectors]
+```
+
+---
+
 ## dependency-cruiser가 담당하는 것 (50파일 이상 시)
 
 ESLint `no-restricted-imports`는 단순 패턴만 차단한다.
