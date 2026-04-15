@@ -48,8 +48,7 @@ description: |
 ├── src/ 하위 파일 수 카운트
 ├── .gitignore에 .env 포함 여부
 ├── eslint.config.mjs 또는 .eslintrc.* 존재 여부 + flat config 여부
-├── .github/workflows/ 존재 여부
-└── Codex 플러그인 설치 여부 (~/.claude/plugins/installed_plugins.json에서 "codex@openai-codex" 키 확인)
+└── .github/workflows/ 존재 여부
 ```
 
 **빈 프로젝트 (package.json 없음)**: 스캔 결과를 "빈 프로젝트"로 보고하고,
@@ -66,8 +65,7 @@ Step 2 인터뷰에서 스택을 결정한다.
  - 기존 하네스: ❌ 없음
  - src/ 파일 수: 15개 / 없음
  - .gitignore: .env 포함 ✅ / ❌
- - ESLint: flat config 감지됨 / 없음
- - Codex 플러그인: ✅ 설치됨 / ❌ 미설치 (리뷰 루프에서 설치 권장)"
+ - ESLint: flat config 감지됨 / 없음"
 ```
 
 ---

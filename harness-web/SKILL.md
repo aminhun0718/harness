@@ -264,21 +264,9 @@ push + PR 트리거 (main, master 양쪽):
 
 ### Step 7. 에이전트 운영 체계
 
-**Codex 플러그인 확인 및 안내**:
-Step 1 스캔에서 감지한 Codex 플러그인 설치 여부에 따라:
-- 설치됨: "리뷰 워크플로우에 `/codex:adversarial-review` 통합 완료" 안내
-- 미설치: 설치 가이드 출력
-  ```
-  /plugin marketplace add openai/codex-plugin-cc
-  /plugin install codex@openai-codex
-  /codex:setup
-  ```
-  Codex 플러그인은 Claude와 독립된 모델(GPT-5 계열)로 코드를 교차 검증하여,
-  같은 모델의 자기 검증 편향을 구조적으로 줄인다. ChatGPT 구독자는 추가 비용 없이 사용 가능.
-
 **CLAUDE.md 리뷰 루프**:
 리뷰 루프 템플릿은 `references/templates.md`의 CLAUDE.md 템플릿 참조.
-핵심 원칙: Codex가 코드 품질(독립 검증), Claude가 UX/통합(Playwright)을 담당하는 2-레이어 리뷰.
+Claude 사이드 리뷰(reviewer.md + QUALITY_SCORE.md 기준) + UX/통합(Playwright)으로 구성한다.
 
 **schedule 설정 안내**:
 - doc-gardening: 주기적 문서 신선도 체크 → 문서 갱신 또는 갱신 필요 알림
