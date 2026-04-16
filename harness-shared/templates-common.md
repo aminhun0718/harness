@@ -202,7 +202,7 @@
 
 ## Claude Code 권한 설정
 
-`update-config` 스킬을 사용하여 다음 권한을 적용한다:
+기존 settings.json을 Read → 머지 → Write하여 다음 권한을 적용한다 (기존 배열은 덮어쓰지 않고 병합):
 
 ```
 허용 (allow):

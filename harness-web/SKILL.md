@@ -25,7 +25,7 @@ description: |
 이미 존재하면 스킵한다. 글로벌 세팅은 모든 프로젝트에 공통.
 
 생성 항목:
-- `.claude/settings.json` 권한 설정 — **`update-config` 스킬을 사용하여 적용**
+- `.claude/settings.json` 권한 설정 — **기존 파일을 Read → 머지 → Write** (기존 배열은 덮어쓰지 않고 병합)
 
 권한 설정 상세는 `../harness-shared/templates-common.md`의 "Claude Code 권한" 섹션을 참조.
 
@@ -149,7 +149,7 @@ docs/
 ├── generated/
 │   ├── schema.md                 ← DB 스키마 (자동 생성)
 │   └── api-endpoints.md          ← API 엔드포인트 (자동 생성)
-├── references/                   ← 외부 라이브러리 참조 (context7 보완)
+├── references/                   ← 외부 라이브러리 참조
 └── agents/
     ├── coder.md
     ├── reviewer.md
@@ -268,10 +268,10 @@ push + PR 트리거 (main, master 양쪽):
 리뷰 루프 템플릿은 `references/templates.md`의 CLAUDE.md 템플릿 참조.
 Claude 사이드 리뷰(reviewer.md + QUALITY_SCORE.md 기준) + UX/통합(Playwright)으로 구성한다.
 
-**schedule 설정 안내**:
+**주기적 관리 안내**:
 - doc-gardening: 주기적 문서 신선도 체크 → 문서 갱신 또는 갱신 필요 알림
 - garbage collection: 주기적 QUALITY_SCORE 갱신 → 품질 하락 영역 식별 → 리팩터링 제안
-- 이 스케줄은 `schedule` 스킬로 설정하며, API 크레딧을 소비하므로 주기를 안내
+- 사용자에게 주기적 실행 권장 안내 (권장: `/schedule` 스킬로 자동화)
 - 스킬이 직접 schedule을 생성하지 않고, 사용자에게 설정 방법을 안내하고 확인을 받는다
 
 ### Step 8. 앱 가독성 + 하네스 진화 문서
@@ -339,23 +339,36 @@ Claude 사이드 리뷰(reviewer.md + QUALITY_SCORE.md 기준) + UX/통합(Playw
 
 ---
 
-## 기존 스킬 연동
+## 권장 스킬
 
-이 스킬은 단독으로 작동하지만, 다음 스킬과 함께 사용하면 하네스가 더 효과적이다:
+하네스는 외부 스킬 없이 단독 작동한다. 아래는 하네스 설치 후 프로젝트 운영 시 유용한 스킬이다.
+harness-init Step 1에서 설치 여부를 확인하고, 최종 리포트에서 미설치 항목을 안내한다.
 
-| 스킬 | 연동 시점 | 설명 |
-|------|----------|------|
-| `superpowers:writing-plans` | exec-plans/ 작성 시 | 실행 계획을 docs/exec-plans/에 저장 |
-| `superpowers:verification-before-completion` | 작업 완료 전 | 검증 없이 완료 선언 방지 |
-| `superpowers:dispatching-parallel-agents` | 코더/리뷰어 병렬 실행 시 | docs/agents/ 가이드라인 참조하도록 프롬프트 |
-| `superpowers:using-git-worktrees` | 큰 변경 시 | 격리된 환경에서 작업 |
-| `context7` | references/ 문서 수집 시 | 외부 라이브러리 최신 문서 가져오기 |
-| `update-config` | settings.json 수정 시 | 직접 JSON 편집 대신 스킬로 안전하게 |
-| `schedule` | 주기적 관리 설정 시 | doc-gardening, garbage collection 스케줄 |
-| `simplify` | 코드 정리 시 | 생성된 설정 파일 중복/비효율 체크 |
-| `frontend-design` | 새 화면/컴포넌트 설계 시 | 제네릭한 AI 디자인 지양, 토큰 기반 프로덕션 UI 생성 |
-| `audit` | 기능 완성 직후 | 접근성/성능/디자인 일관성 종합 점검 (P0-P3 리포트) |
-| `polish` | PR 올리기 전 | 정렬/간격/마이크로 디테일 마감 |
+**★★★ 강력 권장** — 하네스가 생성하는 문서에서 직접 참조:
+
+| 스킬 | 참조 위치 | 없을 때 |
+|------|----------|---------|
+| `superpowers:brainstorming` | product-specs/index.md, 최종 리포트 | 직접 CPS 템플릿으로 작성 |
+| `superpowers:writing-plans` | exec-plans/index.md, 최종 리포트 | 직접 계획 문서 작성 |
+| `superpowers:verification-before-completion` | CLAUDE.md 리뷰 루프 | 수동 체크리스트로 검증 |
+
+**★★☆ 권장** — 워크플로우 효율:
+
+| 스킬 | 용도 |
+|------|------|
+| `superpowers:dispatching-parallel-agents` | 코더/리뷰어 병렬 실행 |
+| `superpowers:using-git-worktrees` | 격리된 환경에서 작업 |
+| `schedule` | doc-gardening, garbage collection 자동화 |
+
+**★☆☆ 선택** — 사용자가 필요할 때 직접 호출:
+
+| 스킬 | 용도 |
+|------|------|
+| `context7` MCP | 외부 라이브러리 최신 문서 조회 |
+| `frontend-design` | 토큰 기반 프로덕션 UI 생성 |
+| `audit` | 접근성/성능/디자인 종합 점검 |
+| `polish` | PR 전 마이크로 디테일 마감 |
+| `simplify` | 코드 정리, 중복/비효율 체크 |
 
 ---
 
@@ -374,6 +387,6 @@ Claude 사이드 리뷰(reviewer.md + QUALITY_SCORE.md 기준) + UX/통합(Playw
 - CLAUDE.md는 반드시 ~100줄 이내. 넘으면 에이전트 성능 저하.
 - ESLint는 반드시 flat config 형식 (eslint.config.mjs). 레거시 .eslintrc 사용 금지.
 - .env 파일은 절대 수정/커밋하지 않는다.
-- settings.json은 직접 편집하지 않고 update-config 스킬을 사용한다.
+- settings.json 수정 시 기존 설정을 Read → 머지 → Write한다. 기존 배열은 덮어쓰지 않고 병합.
 - 생성된 모든 docs/ 파일에는 마지막 업데이트 날짜를 표시한다.
 - design-docs/와 product-specs/에는 반드시 index.md (목차)를 포함한다.

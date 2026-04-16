@@ -65,8 +65,19 @@ Step 2 인터뷰에서 스택을 결정한다.
  - 기존 하네스: ❌ 없음
  - src/ 파일 수: 15개 / 없음
  - .gitignore: .env 포함 ✅ / ❌
- - ESLint: flat config 감지됨 / 없음"
+ - ESLint: flat config 감지됨 / 없음
+
+ 권장 스킬 (우선순위순):
+ ★★★ superpowers:brainstorming:              ✅ / ❌
+ ★★★ superpowers:writing-plans:              ✅ / ❌
+ ★★☆ superpowers:verification-before-completion: ✅ / ❌
+ ★★☆ superpowers:dispatching-parallel-agents:   ✅ / ❌
+ ★☆☆ superpowers:using-git-worktrees:           ✅ / ❌
+ ★☆☆ schedule:                                  ✅ / ❌
+ ★☆☆ context7 MCP:                              ✅ / ❌"
 ```
+
+**미설치 스킬이 있어도 진행한다.** 최종 리포트에서 미설치 항목과 설치 시 이점을 안내.
 
 ---
 
@@ -186,4 +197,4 @@ Step 2 인터뷰에서 스택을 결정한다.
 - Step 1-2는 스택 중립적이다. 어떤 프로젝트에서든 동일하게 작동.
 - 하위 스킬을 직접 호출하지 않는다. 반드시 이 라우터를 통해 진입.
 - .env 파일은 절대 수정/커밋하지 않는다.
-- settings.json은 직접 편집하지 않고 update-config 스킬을 사용한다.
+- settings.json 수정 시 기존 설정을 Read → 머지 → Write한다. 기존 배열은 덮어쓰지 않고 병합.
