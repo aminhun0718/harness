@@ -9,8 +9,8 @@ AI 에이전트 운영을 위한 하네스 인프라 스킬 모음.
 - **CLAUDE.md 라우터**: ~100줄 라우터 + docs/ progressive disclosure 구조
 - **가드레일 설치**: ESLint flat config, husky, CI, TypeScript strict 자동 세팅
 - **에이전트 운영 체계**: docs/agents/ 기반 역할 분리 (coder/reviewer/security)
-- **Codex 교차 검증**: `codex-plugin-cc` 통합으로 독립 모델 코드 리뷰 (self-bias 완화)
 - **자기 유지 시스템**: 문서 갱신, 규칙 승격, 품질 점수 자동 관리
+- **단독 작동**: 외부 스킬/플러그인 없이 완전 동작, 권장 스킬은 있으면 더 좋음
 
 ## 설치
 
@@ -52,18 +52,6 @@ git clone https://github.com/aminhun0718/harness.git ~/harness-src
 # 4개 폴더를 .claude/skills/ 루트로 복사 또는 symlink
 ```
 
-### Codex 플러그인 설치 (권장)
-
-Codex 교차 검증을 사용하려면 플러그인을 설치:
-
-```
-/plugin marketplace add openai/codex-plugin-cc
-/plugin install codex@openai-codex
-/codex:setup
-```
-
-ChatGPT 구독자는 추가 비용 없이 사용 가능.
-
 ## 업데이트
 
 ```bash
@@ -100,24 +88,49 @@ Claude Code에서:
 
 `harness-web`, `harness-rn`, `harness-shared`는 단독 실행하지 마세요. `harness-init`이 스택을 감지하여 적절한 하위 스킬을 자동 호출합니다.
 
-## 리뷰 워크플로우 (Codex 통합 후)
+## 권장 스킬
+
+하네스는 외부 스킬 없이 단독 작동합니다. 아래 스킬이 설치되어 있으면 하네스가 생성하는 워크플로우가 더 효과적입니다. `harness-init` 실행 시 자동으로 설치 여부를 체크하고, 최종 리포트에서 안내합니다.
+
+### ★★★ 강력 권장
+
+하네스가 생성하는 문서(product-specs/, exec-plans/, CLAUDE.md 리뷰 루프)에서 직접 참조합니다.
+
+| 스킬 | 용도 | 없을 때 |
+|------|------|---------|
+| `superpowers:brainstorming` | 기능 설계 진입점 | 직접 CPS 템플릿으로 작성 |
+| `superpowers:writing-plans` | 실행 계획 작성 | 직접 계획 문서 작성 |
+| `superpowers:verification-before-completion` | 완료 전 검증 강제 | 수동 체크리스트로 검증 |
+
+### ★★☆ 권장
+
+| 스킬 | 용도 |
+|------|------|
+| `superpowers:dispatching-parallel-agents` | 코더/리뷰어 병렬 실행 |
+| `superpowers:using-git-worktrees` | 격리된 환경에서 작업 |
+| `schedule` | doc-gardening, garbage collection 자동화 |
+
+### ★☆☆ 선택
+
+사용자가 필요할 때 직접 호출하거나, 에이전트에게 활용을 지시하면 됩니다.
+
+| 스킬 | 용도 |
+|------|------|
+| `context7` MCP | 외부 라이브러리 최신 문서 조회 |
+| `frontend-design` | 토큰 기반 프로덕션 UI 생성 |
+| `audit` | 접근성/성능/디자인 종합 점검 |
+| `polish` | PR 전 마이크로 디테일 마감 |
+| `simplify` | 코드 정리, 중복/비효율 체크 |
+
+## 리뷰 워크플로우
 
 설치된 프로젝트의 CLAUDE.md에 다음 리뷰 루프가 포함됩니다:
 
-1. 구현 완료 후 `/codex:adversarial-review --background` 실행 (Codex 플러그인 설치 시)
-2. 코드 리뷰 (docs/agents/reviewer.md 기준)
-3. 보안 관련 변경 시 docs/agents/security.md 기준 추가 검토
-4. 대량 작업 또는 UI 변경 시 Playwright로 주요 페이지 확인
-5. `/codex:result`로 Codex 리뷰 결과 확인
-6. CRITICAL 이슈 해결 후 재검토
-7. 모든 검토 통과 후 커밋
-
-### 2-레이어 리뷰 원칙
-
-- **Codex** (독립 모델): 코드 품질, 아키텍처, 로직 검증 — 자기 검증 편향 없음
-- **Claude** (메인): UX/통합 검증, Playwright 기반 동작 확인
-
-같은 모델의 서브에이전트는 독립성이 환상에 가깝기 때문에, 실제 다른 모델(GPT-5 계열)로 교차 검증하여 구조적으로 편향을 줄인다.
+1. 코드 리뷰 (docs/agents/reviewer.md 기준)
+2. 보안 관련 변경 시 docs/agents/security.md 기준 추가 검토
+3. 대량 작업 또는 UI 변경 시 브라우저 검증 (Playwright MCP 설치 시)
+4. CRITICAL 이슈 해결 후 재검토
+5. 모든 검토 통과 후 커밋
 
 ## 철학
 
@@ -125,4 +138,4 @@ Claude Code에서:
 - **지도를 줘라, 매뉴얼 말고** — CLAUDE.md는 ~100줄 라우터, 상세는 docs/에서 progressive disclosure
 - **부탁이 아니라 강제** — 규칙은 문서가 아니라 린터/훅/CI로 구현
 - **에이전트의 세계 = 레포지토리** — 모든 맥락을 파일로
-- **독립 검증** — 같은 모델 자기 검증은 편향, 다른 모델 교차 검증이 진짜 리뷰
+- **단독 작동, 확장 가능** — 외부 의존 0으로 동작하되, 권장 스킬 설치 시 자동 연동
